@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DIGICHer Monitoring Instrument - Consortium Validation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #F8F8F6; color: #333; }
+    .header { background: linear-gradient(90deg, #E8833A 0%, #D4722E 100%); color: white; padding: 30px 20px; text-align: center; }
+    .header h1 { font-size: 28px; margin-bottom: 5px; }
+    .header p { font-size: 14px; opacity: 0.95; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+    .tab-btn { background: none; border: none; padding: 12px 20px; cursor: pointer; font-size: 15px; color: #999; font-weight: 500; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .tab-btn:hover { color: #E8833A; }
+    .tab-btn.active { color: #E8833A; border-bottom-color: #E8833A; }
+    .tab-content { display: none; animation: fadeIn 0.2s; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* TAB 1: WELCOME */
+    .welcome-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #E8833A; }
+    .welcome-box h3 { color: #E8833A; margin-bottom: 10px; font-size: 16px; }
+    .welcome-box p { line-height: 1.6; margin-bottom: 10px; font-size: 14px; }
+    .welcome-box p:last-child { margin-bottom: 0; }
+    .welcome-input { margin: 20px 0; }
+    .welcome-input label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+    .welcome-input input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .btn { padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.2s; }
+    .btn-primary { background: #E8833A; color: white; }
+    .btn-primary:hover { background: #D4722E; }
+    .btn-secondary { background: white; color: #E8833A; border: 2px solid #E8833A; }
+    .btn-secondary:hover { background: #FEF5F1; }
+    .welcome-note { background: #F0F0F0; padding: 12px; border-radius: 4px; font-size: 12px; color: #666; margin-top: 20px; }
+
+    /* TAB 2: ASSESSMENT */
+    .info-bar { background: #F0F7FF; border-left: 4px solid #2E6B9E; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: #333; }
+    .progress-bar { background: white; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-weight: 500; color: #E8833A; }
+    .dimension { margin-bottom: 15px; border-radius: 4px; overflow: hidden; }
+    .dim-header { background: white; padding: 15px; border-left: 5px solid #2E6B9E; cursor: pointer; font-weight: 500; user-select: none; transition: background 0.2s; }
+    .dim-header:hover { background: #F5F5F5; }
+    .toggle-icon { display: inline-block; transition: transform 0.2s; margin-right: 8px; }
+    .dim-header.collapsed .toggle-icon { transform: rotate(-90deg); }
+    .dim-content { background: white; padding: 0 15px 15px 15px; }
+    .indicator { margin-bottom: 20px; }
+    .ind-header { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+    .ind-code { background: #2E6B9E; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; min-width: 50px; text-align: center; flex-shrink: 0; }
+    .ind-title { font-weight: 500; font-size: 14px; flex: 1; }
+    .flag-btn { background: white; border: 1px solid #ddd; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; transition: all 0.2s; flex-shrink: 0; }
+    .flag-btn:hover { border-color: #E8833A; color: #E8833A; }
+    .ind-explanation { font-size: 13px; color: #666; margin-bottom: 12px; line-height: 1.5; }
+    .maturity-cards { margin-bottom: 12px; }
+    .maturity-card { cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; display: flex; gap: 10px; transition: all 0.15s; background: white; }
+    .maturity-card:hover { border-color: #bbb; }
+    .maturity-card.selected.level-0 { border-color: #F5C842; background: #FFFDF0; }
+    .maturity-card.selected.level-1 { border-color: #A8D86E; background: #F8FCF2; }
+    .maturity-card.selected.level-2 { border-color: #2CA58D; background: #F0FAF7; }
+    .card-check { width: 22px; height: 22px; border: 2px solid #ddd; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all 0.15s; }
+    .maturity-card.selected .card-check { background: #2CA58D; border-color: #2CA58D; }
+    .maturity-card.selected .card-check::after { content: '\2713'; color: white; font-size: 14px; }
+    .card-bar { width: 5px; border-radius: 3px; flex-shrink: 0; min-height: 40px; }
+    .card-body { flex: 1; }
+    .card-label { font-weight: 500; font-size: 13px; margin-bottom: 4px; }
+    .card-desc { font-size: 12px; color: #666; line-height: 1.4; }
+    .na-label { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-top: 8px; cursor: pointer; }
+    .na-label input { cursor: pointer; }
+    .indicator.flagged { background: #FFF3CD; border-left: 4px solid #E8833A; padding: 10px; border-radius: 4px; }
+    .flag-note { margin-top: 12px; }
+    .flag-note textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px; }
+
+    /* TAB 3: RESULTS */
+    .results-subtitle { font-size: 14px; color: #666; margin-bottom: 25px; }
+    .result-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #ddd; }
+    .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .result-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .result-name { font-weight: 500; font-size: 15px; }
+    .result-level { font-size: 22px; font-weight: 600; color: #333; margin-bottom: 12px; }
+    .result-bar { height: 3px; border-radius: 2px; margin-bottom: 12px; }
+    .result-rec { font-size: 13px; line-height: 1.6; color: #666; }
+    .overall-card { background: linear-gradient(135deg, #E8833A 0%, #D4722E 100%); color: white; padding: 25px; border-radius: 8px; margin-top: 30px; text-align: center; }
+    .overall-label { font-size: 14px; opacity: 0.95; margin-bottom: 8px; }
+    .overall-value { font-size: 28px; font-weight: 600; }
+    .results-buttons { margin-top: 25px; display: flex; gap: 10px; }
+
+    /* TAB 4: FEEDBACK */
+    .feedback-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .feedback-section h3 { color: #E8833A; margin-bottom: 12px; font-size: 15px; }
+    .flagged-list { font-size: 13px; line-height: 1.6; }
+    .flagged-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+    .flagged-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .flagged-code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-weight: 500; }
+    .flagged-note { color: #666; margin-top: 6px; font-style: italic; }
+    .feedback-q { margin-bottom: 20px; }
+    .feedback-q label { display: block; font-weight: 500; margin-bottom: 8px; font-size: 14px; }
+    .feedback-q textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 100px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>DIGICHer Monitoring Instrument</h1>
+  <p>Consortium Validation</p>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">Welcome</button>
+    <button class="tab-btn" onclick="switchTab(1)">Assessment</button>
+    <button class="tab-btn" onclick="switchTab(2)">Results & Recommendations</button>
+    <button class="tab-btn" onclick="switchTab(3)">Instrument Feedback</button>
+  </div>
+
+  <!-- TAB 1: WELCOME -->
+  <div class="tab-content active">
+    <p style="margin-bottom: 20px; font-size: 15px;">Thank you for helping us validate the DIGICHer monitoring instrument.</p>
+
+    <div class="welcome-box">
+      <h3>About this instrument</h3>
+      <p>The DIGICHer monitoring instrument helps cultural heritage institutions assess how inclusively and equitably they conduct digitisation of minority cultural heritage. It covers the full digitisation process: from resourcing and community participation, through technology and access, to cultural integrity and ethical governance.</p>
+      <p>The 20 indicators are derived from an evidence base spanning socio-economic criteria (D3.1), legal and ethical criteria (WP2), technology criteria (WP4), and stakeholder analysis (WP1). The full criteria derivation and Theory of Change are documented in D4.4. The instrument uses a maturity-based approach aligned with the CARE Principles for Indigenous Data Governance.</p>
+    </div>
+
+    <div class="welcome-box">
+      <h3>This validation session</h3>
+      <p><strong>PART 1: Test the instrument.</strong> Choose a digitisation initiative you are familiar with and assess it using 20 indicators grouped in 6 dimensions, plus 1 cross-cutting CARE Principles indicator. For each, read the three descriptions and click the one that best matches your situation.</p>
+      <p><strong>PART 2: Give feedback.</strong> If any indicator is unclear or needs rewording, click the Flag button and add a note. After the assessment, complete the Feedback tab.</p>
+    </div>
+
+    <div class="welcome-note">All data is anonymous. You can save results as PDF or download as JSON from the Results tab.</div>
+
+    <div class="welcome-input">
+      <label for="initiative-desc">Briefly describe the digitisation initiative you are evaluating (optional):</label>
+      <input type="text" id="initiative-desc" placeholder="e.g., Sami archival digitisation at the National Archives of Finland">
+    </div>
+
+    <button class="btn btn-primary" onclick="switchTab(1)">Begin Assessment</button>
+  </div>
+
+  <!-- TAB 2: ASSESSMENT -->
+  <div class="tab-content">
+    <div class="info-bar">
+      <strong>How to use this page:</strong><br>
+      1. Assess your initiative: Read the three descriptions for each indicator and click the one that best matches the current state of the digitisation initiative you chose.<br>
+      2. Review the indicator: If the indicator text is unclear, the descriptions are hard to distinguish, or something important is missing, click Flag and add a note.
+    </div>
+
+    <div class="progress-bar">Progress: <span id="progress">0</span> of 21 indicators completed</div>
+
+    <div id="assessmentContainer"></div>
+  </div>
+
+  <!-- TAB 3: RESULTS -->
+  <div class="tab-content">
+    <h2 style="margin-bottom:5px;">Maturity Dashboard</h2>
+    <p style="color:#666;font-size:14px;margin-bottom:20px;">Your digitisation initiative's maturity profile across the six dimensions and CARE Principles</p>
+    <div id="resultsContainer"></div>
+  </div>
+
+  <!-- TAB 4: FEEDBACK -->
+  <div class="tab-content">
+    <h2 style="margin-bottom: 20px;">Feedback on the Instrument</h2>
+
+    <div class="feedback-section">
+      <h3>Flagged indicators</h3>
+      <div id="flaggedIndicators" class="flagged-list">No indicators flagged.</div>
+    </div>
+
+    <div class="feedback-section">
+      <div class="feedback-q">
+        <label>1. Is the three-level maturity scale appropriate? Would you change anything about the levels or labels?</label>
+        <textarea id="feedback-1"></textarea>
+      </div>
+
+      <div class="feedback-q">
+        <label>2. Are there important aspects of inclusive digitisation not covered by the current indicators?</label>
+        <textarea id="feedback-2"></textarea>
+      </div>
+
+      <div class="feedback-q">
+        <label>3. Any other feedback?</label>
+        <textarea id="feedback-3"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+  </div>
+</div>
+
+<script>
+// Configuration - paste your Google Apps Script URL here
+const GOOGLE_SCRIPT_URL = '';
+
+const DIMENSIONS = [
+  {
+    name: 'Inclusive Resourcing & Sustainability',
+    color: '#2E6B9E',
+    indicators: [
+      {
+        code: '1.1',
+        text: 'Existence of a resource or financing model supporting the digitisation initiative.',
+        explanation: 'Assesses whether the digitisation process has a clear plan for resourcing during and beyond the project phase.',
+        levels: [
+          'Resource planning is still emerging, with funding managed on a project-by-project basis.',
+          'A resource or financing plan exists with some continuity, though long-term sustainability is still being developed.',
+          'A formal resource and financing plan is in place, with clear provisions for implementation, maintenance, and future growth.'
+        ]
+      },
+      {
+        code: '1.2',
+        text: 'Stewardship and maintenance responsibilities are defined and sustainable.',
+        explanation: 'Evaluates whether there is a clearly identified actor responsible for maintaining the digitised collection over time.',
+        levels: [
+          'Stewardship responsibilities are still being identified and clarified.',
+          'Responsibilities are beginning to take shape, though they may shift with personnel or remain somewhat informal.',
+          'Clear, documented stewardship with defined roles, budget allocation, and a maintenance plan.'
+        ]
+      },
+      {
+        code: '1.3',
+        text: 'Collaboration mechanisms or co-funding arrangements are in place.',
+        explanation: 'Looks at whether the initiative involves formal partnerships with other organisations, communities, or funders.',
+        levels: [
+          'Partnership opportunities are still being explored with potential external partners and communities.',
+          'Collaboration is developing, with some cooperation discussed and initial steps toward formalisation.',
+          'Formal collaboration or co-funding mechanisms are documented and actively functioning.'
+        ]
+      },
+      {
+        code: '1.4',
+        text: 'Expected community or socio-economic benefits are identified and discussed.',
+        explanation: 'Assesses whether the initiative has articulated how it will benefit the minority community whose heritage is being digitised.',
+        levels: [
+          'Potential benefits and impacts are opportunities for exploration and dialogue.',
+          'Benefits are being discussed informally and beginning to take shape through initial planning.',
+          'Benefits are clearly articulated, documented, and linked to measurable project outcomes.'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Minority Capacity & Empowerment',
+    color: '#2CA58D',
+    indicators: [
+      {
+        code: '2.1',
+        text: 'Training or mentoring opportunities enable effective participation in digitisation.',
+        explanation: 'Evaluates whether capacity-building opportunities enable community members to participate meaningfully.',
+        levels: [
+          'Training and mentoring opportunities are still being designed and planned.',
+          'Some capacity-building activities are offered, reaching interested participants on an ongoing basis.',
+          'Structured, accessible training and mentoring are available, enabling most participants to engage meaningfully.'
+        ]
+      },
+      {
+        code: '2.2',
+        text: 'Minority representatives hold defined roles in planning or execution.',
+        explanation: 'Assesses whether community members have formal, documented roles in decision-making, not just informal consultation.',
+        levels: [
+          'Pathways for minority involvement in planning and execution are still being developed.',
+          'Representatives are consulted and beginning to have input, though roles and influence are still taking shape.',
+          'Formalised roles and shared decision-making structures are in place with documented authority.'
+        ]
+      },
+      {
+        code: '2.3',
+        text: 'Organisational and technical support structures facilitate participation.',
+        explanation: 'Evaluates whether practical support (helpdesks, documentation, translation, flexible scheduling) enables participation.',
+        levels: [
+          'Support structures are still being identified and planned.',
+          'Support is being provided informally or on an ad-hoc basis as needed.',
+          'Regular, accessible support mechanisms are documented, resourced, and functioning smoothly.'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Social Inclusion & Participation',
+    color: '#E8833A',
+    indicators: [
+      {
+        code: '3.1',
+        text: 'Diversity of participants reflects the composition of the community.',
+        explanation: 'Assesses whether the range of people involved reflects the community\'s diversity.',
+        levels: [
+          'Participation is still limited; broadening representation is an opportunity for growth.',
+          'Growing diversity in participation, though some community segments are not yet fully engaged.',
+          'Balanced participation reflecting community diversity across gender, age, language, and geographic groups.'
+        ]
+      },
+      {
+        code: '3.2',
+        text: 'Staff and partners demonstrate inclusive and intercultural practice.',
+        explanation: 'Evaluates whether institutional staff have awareness and skills to work respectfully across cultural differences.',
+        levels: [
+          'Awareness of inclusion and intercultural practice is still developing.',
+          'Basic awareness exists and is beginning to be embedded through informal practice.',
+          'Inclusion and intercultural competence are embedded through policy, training, and everyday practice.'
+        ]
+      },
+      {
+        code: '3.3',
+        text: 'Outreach and communication encourage engagement of under-represented groups.',
+        explanation: 'Assesses whether the institution actively reaches out using community languages and culturally appropriate channels.',
+        levels: [
+          'Targeted outreach approaches are still being designed and planned.',
+          'Outreach activities are beginning, though they are still developing in reach and consistency.',
+          'Active, documented outreach strategies are in place, ensuring ongoing engagement of diverse community members.'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Equitable Access & Technology',
+    color: '#8E44AD',
+    indicators: [
+      {
+        code: '4.1',
+        text: 'Tools and platforms are designed for linguistic and functional accessibility.',
+        explanation: 'Evaluates whether digital tools are accessible in community languages and usable by people with varying digital literacy.',
+        levels: [
+          'Accessibility adaptations are still being explored; tools are not yet available in community languages.',
+          'Some linguistic or usability adaptations are in development, with foundations being laid.',
+          'Fully accessible tools are available in relevant community languages, with usability tested and refined.'
+        ]
+      },
+      {
+        code: '4.2',
+        text: 'Systems accommodate connectivity and device limitations.',
+        explanation: 'Assesses whether the technology works for users with limited bandwidth, older devices, or mobile-only access.',
+        levels: [
+          'Platform design is still being assessed for connectivity and device constraints.',
+          'Some adjustments are underway to improve offline and mobile usability.',
+          'Fully optimised for low-bandwidth, mobile-first, and offline access scenarios.'
+        ]
+      },
+      {
+        code: '4.3',
+        text: 'Usability or accessibility testing is conducted or planned.',
+        explanation: 'Evaluates whether the tools have been tested with actual community users, not just internal staff.',
+        levels: [
+          'Usability and accessibility testing are planned as next steps.',
+          'Some testing has begun, with recommendations being developed and integrated.',
+          'Regular or ongoing testing with community members ensures feedback is incorporated systematically.'
+        ]
+      },
+      {
+        code: '4.4',
+        text: 'Level and quality of digitisation meet intended use and preservation needs.',
+        explanation: 'Assesses whether technical quality (resolution, formats, metadata) is appropriate for intended use and preservation.',
+        levels: [
+          'Quality standards and preservation requirements are still being defined.',
+          'Quality is developing to serve the intended use, with refinements underway.',
+          'Quality and format fully align with user needs and preservation standards.'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Minority Heritage Value & Engagement',
+    color: '#D4A843',
+    indicators: [
+      {
+        code: '5.1',
+        text: 'Selection of heritage materials is based on consultation with minority stakeholders or experts.',
+        explanation: 'Assesses whether the community was involved in deciding what should be digitised.',
+        levels: [
+          'Co-selection processes with community input are still being designed.',
+          'Informal consultation is happening, with co-selection practices beginning to develop.',
+          'Structured co-selection process documented and actively shaping collection decisions.'
+        ]
+      },
+      {
+        code: '5.2',
+        text: 'Processes ensure contextual accuracy and authenticity of digital representations.',
+        explanation: 'Evaluates whether digitised materials have accurate, community-verified contextual information.',
+        levels: [
+          'Contextual information systems are still being developed and planned.',
+          'Contextual information is being gathered, though completeness and consistency are still developing.',
+          'Comprehensive, verified contextual data is embedded, with community and expert validation.'
+        ]
+      },
+      {
+        code: '5.3',
+        text: 'Mechanisms for ongoing engagement or feedback from minority stakeholders are integrated.',
+        explanation: 'Assesses whether continuous feedback mechanisms are built into the workflow.',
+        levels: [
+          'Feedback mechanisms are still being designed into workflows.',
+          'Some engagement activities are happening, with feedback collection beginning to develop.',
+          'Continuous engagement and validation checkpoints are built into workflow, with community review before release.'
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Cultural Integrity & Authenticity',
+    color: '#C0392B',
+    indicators: [
+      {
+        code: '6.1',
+        text: 'Validation process involving minority representatives or experts confirms cultural accuracy.',
+        explanation: 'Evaluates whether there is a formal step where community representatives review outputs before publication.',
+        levels: [
+          'Cultural validation processes are opportunities for development and implementation.',
+          'Informal or partial validation is beginning, with documentation and structure still developing.',
+          'Documented validation workflow with community representatives and cultural experts reviewing outputs.'
+        ]
+      },
+      {
+        code: '6.2',
+        text: 'Long-term preservation and access planning includes ethical and cultural aspects.',
+        explanation: 'Assesses whether preservation planning addresses who has access, how sensitive materials are protected over time.',
+        levels: [
+          'Ethical and cultural considerations in preservation planning are still being explored.',
+          'Basic preservation planning is underway, with ethical and cultural dimensions beginning to develop.',
+          'Comprehensive preservation plan that fully addresses ethical requirements and cultural protocols.'
+        ]
+      },
+      {
+        code: '6.3',
+        text: 'Ethical safeguards, consent, and rights management are recognised and applied.',
+        explanation: 'Evaluates informed consent, IPR, TK labels, layered access, and handling of access requests. Reflects the CARE Principles.',
+        levels: [
+          'Consent, intellectual property, and cultural protocols are opportunities for development.',
+          'Basic measures are in place, though consistent application and comprehensive coverage are still developing.',
+          'Comprehensive consent, rights management, and cultural safeguards (including layered access and community labels) embedded in workflow.'
+        ]
+      }
+    ]
+  }
+];
+
+const CARE_INDICATOR = {
+  code: 'CARE',
+  text: 'CARE Principles are respected throughout the digitisation process.',
+  explanation: 'The CARE Principles for Indigenous Data Governance require: Collective Benefit (the community derives value from their heritage data), Authority to Control (the community governs collection, access, and use of their data), Responsibility (the institution nurtures respectful relationships and supports community capacity), and Ethics (community rights and wellbeing take precedence in data use decisions). This indicator assesses whether these four principles are visible across the digitisation workflow as a whole.',
+  levels: [
+    'The CARE Principles are not yet visible in the digitisation process. Community benefit, authority, institutional responsibility, and ethical safeguards are opportunities for development.',
+    'Some CARE Principles are being addressed, but application is uneven across the workflow. Progress is being made in some areas while others still need attention.',
+    'The CARE Principles are embedded throughout the digitisation workflow. The community derives benefit, exercises authority over their data, the institution maintains responsible relationships, and ethical safeguards are operational.'
+  ]
+};
+
+const RECOMMENDATIONS = {
+  '1': [
+    'Priority: Develop a formal resourcing plan. Identify long-term funding sources, assign stewardship responsibilities, and document partnership arrangements before proceeding further with digitisation.',
+    'Next step: Formalise existing resourcing arrangements. Move from informal plans to documented agreements with clear timelines, responsibilities, and sustainability provisions.',
+    'Strength identified. Continue documenting and sharing your resourcing model as good practice. Consider whether community benefits are being realised as planned.'
+  ],
+  '2': [
+    'Priority: Invest in community capacity building. Design training programmes, create formal roles for minority representatives, and establish accessible support structures before major digitisation decisions are made.',
+    'Next step: Strengthen existing empowerment structures. Ensure that community roles carry real decision-making authority, not just advisory functions, and that support is consistent rather than ad-hoc.',
+    'Strength identified. Community empowerment structures are well developed. Monitor whether they remain effective as the project evolves and new participants join.'
+  ],
+  '3': [
+    'Priority: Broaden participation. Actively recruit participants from underrepresented segments of the community through targeted outreach in community languages and culturally appropriate channels.',
+    'Next step: Systematise inclusive practices. Move from informal awareness to embedded policies for intercultural competence, diverse outreach, and balanced representation.',
+    'Strength identified. Participation is diverse and inclusion is systematic. Continue monitoring whether new community voices are being reached as the project develops.'
+  ],
+  '4': [
+    'Priority: Address accessibility barriers. Ensure tools are available in community languages, test with users who have limited connectivity, and conduct usability testing with actual community members.',
+    'Next step: Complete accessibility adaptations. Finalise multilingual interfaces, optimise for low-bandwidth access, and integrate user feedback from testing into the platform design.',
+    'Strength identified. Technology is well adapted to community needs. Continue testing with new user groups and monitor whether accessibility standards are maintained over time.'
+  ],
+  '5': [
+    'Priority: Establish community consultation for heritage selection. Implement a co-selection process where community members have meaningful input into what gets digitised and how it is described.',
+    'Next step: Build continuous engagement. Move from one-time consultation to ongoing feedback mechanisms where communities can review, correct, and supplement digitised content.',
+    'Strength identified. Community engagement is continuous and structured. Consider sharing your co-selection and validation practices as a model for other institutions.'
+  ],
+  '6': [
+    'Priority: Implement consent and validation processes. Establish informed consent procedures, clarify intellectual property rights, and create a validation workflow where community representatives review outputs before publication.',
+    'Next step: Strengthen ethical governance. Ensure consent processes, rights management, and cultural protocols are consistently applied across all workflow stages, not just documented in policy.',
+    'Strength identified. Ethical governance is comprehensive and operational. Continue monitoring whether platform settings and access restrictions match stated policies in practice.'
+  ],
+  'CARE': [
+    'The CARE Principles are not yet visible in practice. This is a foundational gap. Review each principle (Collective Benefit, Authority to Control, Responsibility, Ethics) and identify concrete actions to embed them in the digitisation workflow.',
+    'Some CARE Principles are being addressed, but application is uneven. Identify which principles are weakest and develop specific actions to strengthen them.',
+    'The CARE Principles are well embedded. Continue documenting how they are applied in practice, as this evidence supports policy recommendations and can guide other institutions.'
+  ]
+};
+
+const scores = {};
+const flags = {};
+
+function switchTab(index) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content')[index].classList.add('active');
+  document.querySelectorAll('.tab-btn')[index].classList.add('active');
+
+  if (index === 2) {
+    renderResults();
+  } else if (index === 3) {
+    renderFeedback();
+  }
+}
+
+function renderAssessment() {
+  const container = document.getElementById('assessmentContainer');
+  let html = '';
+
+  DIMENSIONS.forEach((dim) => {
+    html += '<div class="dimension">';
+    html += '<div class="dim-header" onclick="toggleDim(this)" style="border-left-color:' + dim.color + '">';
+    html += '<span class="toggle-icon">' + String.fromCharCode(9660) + '</span> ' + dim.name + '</div>';
+    html += '<div class="dim-content">';
+    dim.indicators.forEach(ind => {
+      html += renderIndicator(ind);
+    });
+    html += '</div></div>';
+  });
+
+  html += '<div class="dimension">';
+  html += '<div class="dim-header" onclick="toggleDim(this)" style="border-left-color:#1B3A5C">';
+  html += '<span class="toggle-icon">' + String.fromCharCode(9660) + '</span> CARE Principles (Cross-cutting)</div>';
+  html += '<div class="dim-content">';
+  html += renderIndicator(CARE_INDICATOR);
+  html += '</div></div>';
+
+  html += '<div style="text-align:center;padding:30px 20px;margin-top:20px;background:#F0F7ED;border-radius:12px;">';
+  html += '<p style="font-size:16px;color:#333;margin-bottom:15px;">Finished the assessment? Review your maturity profile and recommendations.</p>';
+  html += '<button onclick="switchTab(2)" style="background:#E8833A;color:white;border:none;padding:14px 36px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">View Results &amp; Recommendations</button>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function renderIndicator(ind) {
+  const LEVEL_NAMES = ['Not yet in place', 'Emerging', 'Established'];
+  const LEVEL_COLORS = ['#F5C842', '#A8D86E', '#2CA58D'];
+
+  let html = '<div class="indicator" id="ind-' + ind.code + '">';
+  html += '<div class="ind-header"><span class="ind-code">' + ind.code + '</span> ';
+  html += '<span class="ind-title">' + ind.text + '</span>';
+  html += '<button class="flag-btn" data-code="' + ind.code + '">Flag</button></div>';
+  html += '<div class="ind-explanation">' + ind.explanation + '</div>';
+  html += '<div class="maturity-cards">';
+
+  for (let i = 0; i < 3; i++) {
+    html += '<div class="maturity-card level-' + i + '" data-code="' + ind.code + '" data-level="' + i + '">';
+    html += '<div class="card-bar" style="background:' + LEVEL_COLORS[i] + '"></div>';
+    html += '<div class="card-body"><div class="card-label">' + LEVEL_NAMES[i] + '</div>';
+    html += '<div class="card-desc">' + ind.levels[i] + '</div></div>';
+    html += '<div class="card-check"></div></div>';
+  }
+
+  html += '</div>';
+  html += '<label class="na-label"><input type="checkbox" class="na-check" data-code="' + ind.code + '"> Not applicable to this context</label>';
+  html += '<div class="flag-note" style="display:none"><textarea placeholder="What needs to change about this indicator?" data-code="' + ind.code + '"></textarea></div>';
+  html += '</div>';
+  return html;
+}
+
+function toggleDim(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.style.display = header.classList.contains('collapsed') ? 'none' : 'block';
+}
+
+function updateProgress() {
+  let count = 0;
+  for (let code in scores) {
+    if (scores[code] !== undefined && scores[code] !== null) {
+      count++;
+    }
+  }
+  document.getElementById('progress').textContent = count;
+}
+
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('assessmentContainer');
+  if (!container) return;
+
+  const card = e.target.closest('.maturity-card');
+  if (card) {
+    const code = card.dataset.code;
+    const level = parseInt(card.dataset.level);
+    document.querySelectorAll('.maturity-card[data-code="' + code + '"]').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    scores[code] = level;
+    const naCheck = document.querySelector('.na-check[data-code="' + code + '"]');
+    if (naCheck) naCheck.checked = false;
+    updateProgress();
+    return;
+  }
+
+  const flagBtn = e.target.closest('.flag-btn');
+  if (flagBtn) {
+    const code = flagBtn.dataset.code;
+    const ind = document.getElementById('ind-' + code);
+    const noteDiv = ind.querySelector('.flag-note');
+    if (ind.classList.contains('flagged')) {
+      ind.classList.remove('flagged');
+      noteDiv.style.display = 'none';
+      delete flags[code];
+      flagBtn.textContent = 'Flag';
+    } else {
+      ind.classList.add('flagged');
+      noteDiv.style.display = 'block';
+      flags[code] = '';
+      flagBtn.textContent = 'Flagged';
+      noteDiv.querySelector('textarea').focus();
+    }
+    return;
+  }
+});
+
+document.addEventListener('input', function(e) {
+  if (e.target.matches('.flag-note textarea')) {
+    flags[e.target.dataset.code] = e.target.value;
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (e.target.matches('.na-check')) {
+    const code = e.target.dataset.code;
+    if (e.target.checked) {
+      document.querySelectorAll('.maturity-card[data-code="' + code + '"]').forEach(c => c.classList.remove('selected'));
+      scores[code] = 'na';
+    } else {
+      delete scores[code];
+    }
+    updateProgress();
+  }
+});
+
+function renderResults() {
+  const resultsContainer = document.getElementById('resultsContainer');
+  const levelNames = ['Not yet in place', 'Emerging', 'Established'];
+  const levelColors = ['#F5C842', '#A8D86E', '#2CA58D'];
+  const levelBgs = ['#FFFDF0', '#F8FCF2', '#F0FAF7'];
+  const levelIcons = ['\u25CB', '\u25D1', '\u25CF'];
+
+  let dimResults = [];
+  let totalScore = 0, scoredCount = 0;
+
+  DIMENSIONS.forEach((dim, di) => {
+    let dimTotal = 0, dimCount = 0;
+    dim.indicators.forEach(ind => {
+      const s = scores[ind.code];
+      if (typeof s === 'number') { dimTotal += s; dimCount++; }
+    });
+    if (dimCount > 0) {
+      const avg = dimTotal / dimCount;
+      const level = avg < 0.7 ? 0 : avg < 1.3 ? 1 : 2;
+      dimResults.push({ dim, level, avg, count: dimCount, total: dim.indicators.length });
+      totalScore += dimTotal; scoredCount += dimCount;
+    } else {
+      dimResults.push({ dim, level: -1, avg: 0, count: 0, total: dim.indicators.length });
+    }
+  });
+
+  let html = '';
+
+  // Overall maturity banner
+  let overallLevel = -1;
+  if (scoredCount > 0) {
+    const overallAvg = totalScore / scoredCount;
+    overallLevel = overallAvg < 0.7 ? 0 : overallAvg < 1.3 ? 1 : 2;
+  }
+  const olColor = overallLevel >= 0 ? levelColors[overallLevel] : '#999';
+  const olName = overallLevel >= 0 ? levelNames[overallLevel] : 'Not assessed';
+  const olBg = overallLevel >= 0 ? levelBgs[overallLevel] : '#f5f5f5';
+
+  html += '<div style="background:' + olBg + ';border:2px solid ' + olColor + ';border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">';
+  html += '<div style="font-size:13px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Overall Co-creation Maturity</div>';
+  html += '<div style="font-size:28px;font-weight:700;color:' + olColor + ';">' + olName + '</div>';
+  if (scoredCount > 0) {
+    html += '<div style="font-size:12px;color:#999;margin-top:4px;">Based on ' + scoredCount + ' of 21 indicators assessed</div>';
+  }
+  html += '</div>';
+
+  // Dimension grid (2x3)
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">';
+
+  dimResults.forEach((r, i) => {
+    const assessed = r.level >= 0;
+    const color = assessed ? levelColors[r.level] : '#ccc';
+    const bg = assessed ? levelBgs[r.level] : '#fafafa';
+    const name = assessed ? levelNames[r.level] : 'Not assessed';
+    const pct = assessed ? Math.round((r.avg / 2) * 100) : 0;
+
+    html += '<div style="background:white;border-radius:12px;border:1px solid #e8e8e8;overflow:hidden;">';
+    // Color top bar
+    html += '<div style="height:4px;background:' + r.dim.color + ';"></div>';
+    html += '<div style="padding:16px;">';
+    // Dimension name
+    html += '<div style="font-size:13px;font-weight:600;color:#333;margin-bottom:10px;">' + r.dim.name + '</div>';
+    // Maturity level badge
+    html += '<div style="display:inline-block;background:' + bg + ';color:' + color + ';border:1px solid ' + color + ';border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;margin-bottom:10px;">' + name + '</div>';
+    // Progress dots (visual: show 3 dots, filled up to level)
+    html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">';
+    for (let d = 0; d < 3; d++) {
+      const dotColor = (assessed && d <= r.level) ? levelColors[d] : '#e0e0e0';
+      html += '<div style="width:24px;height:8px;border-radius:4px;background:' + dotColor + ';"></div>';
+    }
+    html += '<span style="font-size:11px;color:#999;margin-left:4px;">' + r.count + '/' + r.total + ' assessed</span>';
+    html += '</div>';
+    // Recommendation (collapsible)
+    if (assessed) {
+      const rec = RECOMMENDATIONS[(i + 1).toString()][r.level];
+      html += '<details style="margin-top:4px;"><summary style="font-size:12px;color:#E8833A;cursor:pointer;font-weight:500;">View recommendation</summary>';
+      html += '<p style="font-size:12px;color:#555;margin-top:6px;line-height:1.5;">' + rec + '</p></details>';
+    }
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+
+  // CARE card (full width)
+  const careScore = scores['CARE'];
+  const careAssessed = typeof careScore === 'number';
+  const careLevel = careAssessed ? careScore : -1;
+  const careColor = careAssessed ? levelColors[careLevel] : '#ccc';
+  const careBg = careAssessed ? levelBgs[careLevel] : '#fafafa';
+  const careName = careAssessed ? levelNames[careLevel] : 'Not assessed';
+
+  html += '<div style="background:white;border-radius:12px;border:1px solid #e8e8e8;overflow:hidden;margin-bottom:24px;">';
+  html += '<div style="height:4px;background:#1B3A5C;"></div>';
+  html += '<div style="padding:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">';
+  html += '<div style="flex:1;min-width:200px;">';
+  html += '<div style="font-size:13px;font-weight:600;color:#333;">CARE Principles (Cross-cutting)</div>';
+  html += '<div style="font-size:11px;color:#888;margin-top:2px;">Collective Benefit, Authority to Control, Responsibility, Ethics</div>';
+  html += '</div>';
+  html += '<div style="display:inline-block;background:' + careBg + ';color:' + careColor + ';border:1px solid ' + careColor + ';border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;">' + careName + '</div>';
+  html += '</div>';
+  if (careAssessed) {
+    const careRec = RECOMMENDATIONS['CARE'][careLevel];
+    html += '<div style="padding:0 16px 16px;"><p style="font-size:12px;color:#555;line-height:1.5;">' + careRec + '</p></div>';
+  }
+  html += '</div>';
+
+  // Action buttons
+  html += '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">';
+  html += '<button onclick="window.print()" style="background:white;color:#E8833A;border:2px solid #E8833A;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Save as PDF</button>';
+  html += '<button onclick="downloadJSON()" style="background:white;color:#E8833A;border:2px solid #E8833A;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Download JSON</button>';
+  html += '</div>';
+
+  // Link to feedback
+  html += '<div style="text-align:center;padding:16px;"><button onclick="switchTab(3)" style="background:#E8833A;color:white;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Continue to Instrument Feedback</button></div>';
+
+  resultsContainer.innerHTML = html;
+}
+
+function renderFeedback() {
+  let html = '';
+  if (Object.keys(flags).length === 0) {
+    html = 'No indicators flagged.';
+  } else {
+    for (let code in flags) {
+      html += '<div class="flagged-item">';
+      html += '<div><span class="flagged-code">' + code + '</span>';
+      const indicator = findIndicatorByCode(code);
+      if (indicator) {
+        html += ' - ' + indicator.text;
+      }
+      html += '</div>';
+      if (flags[code]) {
+        html += '<div class="flagged-note">' + flags[code] + '</div>';
+      }
+      html += '</div>';
+    }
+  }
+  document.getElementById('flaggedIndicators').innerHTML = html;
+}
+
+function findIndicatorByCode(code) {
+  if (code === 'CARE') return CARE_INDICATOR;
+  for (let dim of DIMENSIONS) {
+    for (let ind of dim.indicators) {
+      if (ind.code === code) return ind;
+    }
+  }
+  return null;
+}
+
+function generateSubmissionId() {
+  const chars = '0123456789abcdef';
+  let id = 'DCV-';
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return id;
+}
+
+function submitFeedback() {
+  const scored = Object.keys(scores).length;
+  if (scored < 5) {
+    alert('Please score at least 5 indicators before submitting.');
+    return;
+  }
+
+  if (!GOOGLE_SCRIPT_URL) {
+    alert('Submission endpoint not configured. Please contact the administrator.');
+    return;
+  }
+
+  const submissionId = generateSubmissionId();
+
+  // Calculate dimension averages
+  const dimAverages = {};
+  DIMENSIONS.forEach((dim) => {
+    let total = 0, count = 0;
+    dim.indicators.forEach(ind => {
+      const s = scores[ind.code];
+      if (typeof s === 'number') { total += s; count++; }
+    });
+    dimAverages[dim.name] = count > 0 ? Math.round((total / count) * 100) / 100 : null;
+  });
+
+  const data = {
+    type: 'consortium_validation',
+    anonymousId: submissionId,
+    timestamp: new Date().toISOString(),
+    initiative: document.getElementById('initiative-desc').value,
+    scores: scores,
+    dimensionAverages: dimAverages,
+    careScore: typeof scores['CARE'] === 'number' ? scores['CARE'] : null,
+    flags: flags,
+    feedback: {
+      maturity_scale: document.getElementById('feedback-1').value,
+      missing_aspects: document.getElementById('feedback-2').value,
+      other: document.getElementById('feedback-3').value
+    }
+  };
+
+  const btn = document.querySelector('.tab-content:last-child .btn-primary');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  const callbackName = 'digicherCallback_' + Date.now();
+  const timeout = setTimeout(() => {
+    delete window[callbackName];
+    if (document.getElementById('jsonp-script')) {
+      document.getElementById('jsonp-script').remove();
+    }
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data)
+    }).then(() => {
+      showSubmissionSuccess(submissionId, btn);
+    }).catch(err => {
+      console.error('Submission error:', err);
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+      alert('Error submitting. Please check your internet connection and try again.');
+    });
+  }, 10000);
+
+  window[callbackName] = function(response) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (document.getElementById('jsonp-script')) {
+      document.getElementById('jsonp-script').remove();
+    }
+    if (response && response.success) {
+      showSubmissionSuccess(submissionId, btn);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+      alert('Submission error: ' + (response ? response.message : 'Unknown error.'));
+    }
+  };
+
+  try {
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const script = document.createElement('script');
+    script.id = 'jsonp-script';
+    script.src = GOOGLE_SCRIPT_URL + '?action=submit&callback=' + callbackName + '&data=' + encodedData;
+    script.onerror = function() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      this.remove();
+      btn.disabled = false;
+      btn.textContent = 'Submit Feedback';
+      alert('Could not reach the submission server. Please check your internet connection.');
+    };
+    document.body.appendChild(script);
+  } catch(err) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    btn.disabled = false;
+    btn.textContent = 'Submit Feedback';
+    alert('Submission error: ' + err.message);
+  }
+}
+
+function showSubmissionSuccess(submissionId, btn) {
+  btn.textContent = 'Submitted';
+  btn.style.background = '#2CA58D';
+  const msg = document.createElement('div');
+  msg.style.cssText = 'background:#F0FAF7;border:2px solid #2CA58D;border-radius:12px;padding:20px;text-align:center;margin-top:20px;';
+  msg.innerHTML = '<div style="font-size:24px;margin-bottom:8px;">&#10003;</div>'
+    + '<div style="font-size:16px;font-weight:600;color:#2CA58D;margin-bottom:8px;">Thank you! Your feedback has been submitted.</div>'
+    + '<div style="font-size:13px;color:#666;">Your reference ID: <strong>' + submissionId + '</strong></div>';
+  btn.parentElement.appendChild(msg);
+}
+
+function downloadJSON() {
+  const data = {
+    timestamp: new Date().toISOString(),
+    initiative: document.getElementById('initiative-desc').value,
+    scores: scores,
+    flags: flags
+  };
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'digicher-assessment-' + new Date().getTime() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function savePDF() {
+  alert('PDF export feature would require a PDF library. Please download as JSON or take a screenshot of the results.');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderAssessment();
+  updateProgress();
+});
+</script>
+
+</body>
+</html>
