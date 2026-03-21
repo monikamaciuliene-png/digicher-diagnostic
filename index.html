@@ -189,7 +189,7 @@
 
 <script>
 // Configuration - paste your Google Apps Script URL here
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwu3OGiY7qMa3fA7y4DD9S6KXPTlx8CHuSYqB5lzw_h-q5j_wQqzivVNu3P3JLr079RDQ/exec';
+const GOOGLE_SCRIPT_URL = '';
 
 const DIMENSIONS = [
   {
@@ -640,7 +640,8 @@ function renderResults() {
       if (typeof s === 'number') { dimTotal += s; dimCount++; }
     });
     if (dimCount > 0) {
-      const avg = dimTotal / dimCount;
+      // Average across ALL indicators in dimension, treating unrated as 0
+      const avg = dimTotal / dim.indicators.length;
       const level = avg < 0.7 ? 0 : avg < 1.3 ? 1 : 2;
       dimResults.push({ dim, level, avg, count: dimCount, total: dim.indicators.length });
       totalScore += dimTotal; scoredCount += dimCount;
@@ -652,9 +653,20 @@ function renderResults() {
   let html = '';
 
   // Overall maturity banner
+  // Count total indicators (all dimensions + CARE)
+  let totalIndicators = 0;
+  DIMENSIONS.forEach(dim => { totalIndicators += dim.indicators.length; });
+  totalIndicators += 1; // CARE indicator
+  // Include CARE score in total if assessed
+  let adjustedTotal = totalScore;
+  let adjustedScored = scoredCount;
+  const careVal = scores['CARE'];
+  if (typeof careVal === 'number') { adjustedTotal += careVal; adjustedScored++; }
+
   let overallLevel = -1;
-  if (scoredCount > 0) {
-    const overallAvg = totalScore / scoredCount;
+  if (adjustedScored > 0) {
+    // Average across ALL indicators, treating unrated as 0
+    const overallAvg = adjustedTotal / totalIndicators;
     overallLevel = overallAvg < 0.7 ? 0 : overallAvg < 1.3 ? 1 : 2;
   }
   const olColor = overallLevel >= 0 ? levelColors[overallLevel] : '#999';
@@ -664,8 +676,11 @@ function renderResults() {
   html += '<div style="background:' + olBg + ';border:2px solid ' + olColor + ';border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">';
   html += '<div style="font-size:13px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Overall Co-creation Maturity</div>';
   html += '<div style="font-size:28px;font-weight:700;color:' + olColor + ';">' + olName + '</div>';
-  if (scoredCount > 0) {
-    html += '<div style="font-size:12px;color:#999;margin-top:4px;">Based on ' + scoredCount + ' of 21 indicators assessed</div>';
+  if (adjustedScored > 0) {
+    html += '<div style="font-size:12px;color:#999;margin-top:4px;">Based on ' + adjustedScored + ' of ' + totalIndicators + ' indicators assessed</div>';
+    if (adjustedScored < totalIndicators) {
+      html += '<div style="font-size:11px;color:#c0392b;margin-top:4px;">Unrated indicators are treated as "Not yet in place" in the overall score</div>';
+    }
   }
   html += '</div>';
 
